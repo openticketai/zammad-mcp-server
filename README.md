@@ -64,15 +64,15 @@ Connecting a large language model to a real helpdesk usually means writing a bes
 The MCP server talks to Zammad through the **REST API**. No Zammad-side plugin is
 required. Full matrix: **[docs/COMPATIBILITY.md](docs/COMPATIBILITY.md)**.
 
-| Zammad version  | Status                                      |
-| --------------- | ------------------------------------------- |
-| **7.2.2**       | **Current** (default dev stack)             |
-| **7.2.x**       | **Compatible**                              |
-| **7.1**         | **Tested**                                  |
-| **7.0**         | **Tested**                                  |
-| **6.5.x**       | **Compatible**                              |
-| **6.0 – 6.4.x** | **Compatible** (minimum supported line)     |
-| **&lt; 6.0**    | Not supported                               |
+| Zammad version  | Status                                  |
+| --------------- | --------------------------------------- |
+| **7.2.2**       | **Current** (default dev stack)         |
+| **7.2.x**       | **Compatible**                          |
+| **7.1**         | **Tested**                              |
+| **7.0**         | **Tested**                              |
+| **6.5.x**       | **Compatible**                          |
+| **6.0 – 6.4.x** | **Compatible** (minimum supported line) |
+| **&lt; 6.0**    | Not supported                           |
 
 **MCP package vs Zammad:** `zammad-mcp-server` on PyPI is versioned independently
 (`0.2.x`). One MCP release works with every supported Zammad version — set
@@ -110,9 +110,9 @@ Full guides, security checklists, and deployment notes live on the Open Ticket A
 - **[Zammad 7 native AI](https://openticketai.com/en/docs/blog/zammad-ai-zammad-7-ki-funktionen-leitfaden/)** — built-in summaries and writing assistant inside the Zammad UI.
 - **Zammad MCP Server (this project)** — connects **external** MCP clients (Claude Desktop, Cursor, custom agents) to Zammad.
 - **[Zammad Commander](https://github.com/Softoft-Orga/zammad-commander)** — **browser chat UI** (LibreChat + this MCP server + your Zammad). No Cursor required; `docker compose up` for internal admin chat. See [Zammad Commander (browser chat UI)](#zammad-commander-browser-chat-ui).
-- **[Open Ticket AI Runtime](https://openticketai.com/en/docs/otai-runtime/)** — on-prem inference with **custom-trained** models via the OTAI Zammad connector ([integration guide](https://openticketai.com/en/docs/blog/integrating-zammad-open-ticket-ai/)).
+- **[Open Ticket AI](https://openticketai.com/en/solutions/zammad/)** — on-prem classification, summaries, and reply drafts from your helpdesk setup (groups, priorities, categories). No model training. See the [integration guide](https://openticketai.com/en/docs/blog/integrating-zammad-open-ticket-ai/).
 
-All three can coexist. MCP is the fastest path to “talk to my helpdesk from Claude.” Want a **team chat UI** instead of an IDE? Use **[Zammad Commander](https://github.com/Softoft-Orga/zammad-commander)**. Need custom models on your queues? See [Open Ticket AI for Zammad](https://openticketai.com/en/solutions/zammad/).
+All four can run side by side. MCP is the fastest path to “talk to my helpdesk from Claude.” Want a **team chat UI** instead of an IDE? Use **[Zammad Commander](https://github.com/Softoft-Orga/zammad-commander)**. Want classification on your own infrastructure? See [Open Ticket AI for Zammad](https://openticketai.com/en/solutions/zammad/).
 
 ## Quick Start
 
