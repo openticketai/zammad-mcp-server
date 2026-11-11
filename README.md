@@ -395,11 +395,21 @@ ZAMMAD_HTTP_TOKEN=your_token_here
 
 Create tokens in Zammad: **Profile** → **Token Access**
 
-### 2. OAuth2 Token
+### 2. OAuth2
+
+`ZAMMAD_OAUTH2_TOKEN` is a bearer token. Obtain one with a browser login (the callback must be registered on a Zammad OAuth application under **Admin → System → API**):
+
+```bash
+zammad-mcp-server login --url https://helpdesk.example.com --client-id YOUR_CLIENT_ID
+```
+
+The command listens on `http://127.0.0.1:8765/callback`, then prints `ZAMMAD_OAUTH2_TOKEN=...`. Paste that into the MCP client env. A token you already hold can be set directly:
 
 ```env
 ZAMMAD_OAUTH2_TOKEN=your_oauth_token
 ```
+
+Personal access tokens stay on `ZAMMAD_HTTP_TOKEN` (`Authorization: Token token=...`). See [Zammad API authentication](https://docs.zammad.org/en/latest/api/intro.html).
 
 ### 3. Username/Password
 

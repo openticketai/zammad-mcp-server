@@ -197,16 +197,23 @@ class ZammadClient:
             raise ZammadClientError(f"Request failed: {e}") from e
 
     def health_check(self) -> dict[str, Any]:
-        """Check if the Zammad server is accessible."""
+        """Check that the configured credentials can call Zammad."""
         try:
-            result = self._request("GET", "/ping")
-            return {"status": "healthy", "response": result}
+            me = self._request("GET", "/users/me")
         except Exception as e:
             return {"status": "unhealthy", "error": str(e)}
+        if not isinstance(me, dict):
+            return {"status": "unhealthy", "error": "Unexpected /api/v1/users/me response"}
+        return {"status": "healthy", "user_id": me.get("id"), "login": me.get("login")}
 
     def get_server_info(self) -> dict[str, Any]:
-        """Get Zammad server information."""
-        return self._request("GET", "/system/")  # type: ignore
+        """Read the Zammad version and the authenticated user."""
+        version_payload = self._request("GET", "/version")
+        me = self._request("GET", "/users/me")
+        version = version_payload.get("version") if isinstance(version_payload, dict) else None
+        if not isinstance(me, dict):
+            return {"version": version}
+        return {"version": version, "user_id": me.get("id"), "login": me.get("login")}
 
     # Ticket operations
 
@@ -309,6 +316,8 @@ class ZammadClient:
                 "type": request.article_type.value,
                 "internal": request.article_internal,
             }
+            if request.article_content_type is not None:
+                data["article"]["content_type"] = request.article_content_type.value
             if request.attachments:
                 data["article"]["attachments"] = [item.to_zammad() for item in request.attachments]
 
@@ -370,6 +379,8 @@ class ZammadClient:
             data["to"] = request.to
         if request.cc:
             data["cc"] = request.cc
+        if request.content_type is not None:
+            data["content_type"] = request.content_type.value
         if request.attachments:
             data["attachments"] = [item.to_zammad() for item in request.attachments]
 
