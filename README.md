@@ -455,15 +455,15 @@ zammad-mcp-server
 Published images are on **GitHub Container Registry** (`ghcr.io`):
 
 ```bash
-docker pull ghcr.io/softoft-orga/zammad-mcp-server:latest
+docker pull ghcr.io/openticketai/zammad-mcp-server:latest
 
 docker run -p 8000:8000 \
   -e ZAMMAD_URL=https://your-zammad.com \
   -e ZAMMAD_HTTP_TOKEN=your_token \
-  ghcr.io/softoft-orga/zammad-mcp-server:latest
+  ghcr.io/openticketai/zammad-mcp-server:latest
 
 # Override to legacy SSE if needed:
-# docker run ... ghcr.io/softoft-orga/zammad-mcp-server:latest \
+# docker run ... ghcr.io/openticketai/zammad-mcp-server:latest \
 #   zammad-mcp-server --transport sse --host 0.0.0.0 --port 8000
 ```
 
