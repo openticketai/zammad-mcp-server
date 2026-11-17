@@ -154,6 +154,23 @@ class TestAccessController:
         assert controller.can_execute("delete_user") is False
         assert controller.can_execute("get_ticket") is True
 
+    def test_explicit_deny_beats_permission_level(self) -> None:
+        """MCP_DENIED_TOOLS blocks execution even when the category allows writes."""
+        policy = AccessPolicy(
+            default_permission=Permission.ADMIN,
+            denied_tools={"create_ticket", "update_ticket", "delete_*"},
+        )
+        controller = AccessController(policy)
+
+        for tool_name in ("create_ticket", "update_ticket", "delete_ticket"):
+            assert controller.can_execute(tool_name) is False
+            assert controller.can_read(tool_name) is False
+            assert controller.can_write(tool_name) is False
+            assert controller.can_admin(tool_name) is False
+
+        assert controller.can_write("get_ticket") is True
+        assert "create_ticket" not in controller.get_allowed_tools()
+
     def test_filter_ticket_allowed_group(self) -> None:
         """Test ticket filtering with allowed group."""
         policy = AccessPolicy(

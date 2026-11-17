@@ -16,7 +16,7 @@ On https://pypi.org/manage/project/zammad-mcp-server/settings/publishing/ (after
 | Field | Value |
 | --- | --- |
 | PyPI project name | `zammad-mcp-server` |
-| Owner | `Softoft-Orga` |
+| Owner | `openticketai` |
 | Repository | `zammad-mcp-server` |
 | Workflow name | `workflow.yml` |
 | Environment | (leave empty) |

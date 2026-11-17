@@ -4,6 +4,10 @@
 
 - Dev stack defaults to Zammad **7.2.2** (`7.2.2-0024`): Memcached, scheduler, websocket, PostgreSQL 17, Redis 8, and Elasticsearch 9. Zammad 7.1 stays a supported tag.
 
+## 0.2.2
+
+- `MCP_DENIED_TOOLS` is enforced when a tool runs. An explicit deny wins over the category permission, so a listed tool cannot create or update data even when the default permission is write or admin.
+
 ## 0.2.1
 
 - `health_check` calls `GET /api/v1/users/me`. `get_server_info` calls `GET /api/v1/version`. The old `/ping` and `/system` paths are not Zammad endpoints.

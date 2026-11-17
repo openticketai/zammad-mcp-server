@@ -134,16 +134,22 @@ class AccessController:
 
     def can_read(self, tool_name: str) -> bool:
         """Check if read operations are allowed."""
+        if self._is_denied(tool_name):
+            return False
         permission = self._get_permission(tool_name)
         return permission in (Permission.READ_ONLY, Permission.WRITE, Permission.ADMIN)
 
     def can_write(self, tool_name: str) -> bool:
         """Check if write operations are allowed."""
+        if self._is_denied(tool_name):
+            return False
         permission = self._get_permission(tool_name)
         return permission in (Permission.WRITE, Permission.ADMIN)
 
     def can_admin(self, tool_name: str) -> bool:
         """Check if admin operations are allowed."""
+        if self._is_denied(tool_name):
+            return False
         permission = self._get_permission(tool_name)
         return permission == Permission.ADMIN
 

@@ -91,14 +91,19 @@ def check_access(tool_name: str, required_permission: Permission) -> None:
     """Check if access is allowed for a tool."""
     controller = get_access_controller()
     controller.consume_rate_limit()
-    allowed = False
+    # Explicit deny (MCP_DENIED_TOOLS, including wildcards) wins over the
+    # permission level. can_* also checks this; can_execute is the gate so a
+    # future permission path cannot skip the deny list.
+    allowed = controller.can_execute(tool_name)
 
-    if required_permission == Permission.ADMIN:
+    if allowed and required_permission == Permission.ADMIN:
         allowed = controller.can_admin(tool_name)
-    elif required_permission == Permission.WRITE:
+    elif allowed and required_permission == Permission.WRITE:
         allowed = controller.can_write(tool_name)
-    elif required_permission == Permission.READ_ONLY:
+    elif allowed and required_permission == Permission.READ_ONLY:
         allowed = controller.can_read(tool_name)
+    elif allowed:
+        allowed = False
 
     controller.log_access(tool_name, allowed)
 

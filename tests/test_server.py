@@ -184,6 +184,36 @@ class TestTicketTools:
             with pytest.raises(PermissionError):
                 create_ticket(title="New", group="Support")
 
+    def test_denied_tools_block_create_and_update(self) -> None:
+        """A write-capable policy still refuses tools named in MCP_DENIED_TOOLS."""
+        from zammad_mcp_server.access_control import AccessController, AccessPolicy, Permission
+
+        controller = AccessController(
+            AccessPolicy(
+                default_permission=Permission.WRITE,
+                denied_tools={"create_ticket", "update_ticket"},
+                rate_limit_per_minute=0,
+            )
+        )
+        with (
+            patch("zammad_mcp_server.server.get_client") as mock_get_client,
+            patch("zammad_mcp_server.server.get_access_controller") as mock_get_controller,
+        ):
+            mock_client = MagicMock()
+            mock_get_client.return_value = mock_client
+            mock_get_controller.return_value = controller
+
+            from zammad_mcp_server.server import create_ticket, update_ticket
+
+            with pytest.raises(PermissionError, match="create_ticket"):
+                create_ticket(title="Should not exist", group="Support")
+            with pytest.raises(PermissionError, match="update_ticket"):
+                update_ticket(ticket_id=1, state="closed")
+
+            mock_client.create_ticket.assert_not_called()
+            mock_client.get_ticket.assert_not_called()
+            mock_client.update_ticket.assert_not_called()
+
     def test_update_ticket(self, unrestricted_controller: Any) -> None:
         """Test updating a ticket."""
         with (
