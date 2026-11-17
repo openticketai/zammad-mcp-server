@@ -21,6 +21,7 @@ from zammad_mcp_server.models import (
     TicketCreateRequest,
     TicketStats,
     TicketUpdateRequest,
+    TimeAccounting,
     User,
     UserCreateRequest,
 )
@@ -385,7 +386,44 @@ class ZammadClient:
             data["attachments"] = [item.to_zammad() for item in request.attachments]
 
         result = self._request("POST", "/ticket_articles", json=data)
-        return Article.model_validate(result)
+        article = Article.model_validate(result)
+        if request.time_unit is not None:
+            self.create_time_accounting(
+                ticket_id=request.ticket_id,
+                time_unit=request.time_unit,
+                type_id=request.time_accounting_type_id,
+                ticket_article_id=article.id,
+            )
+        return article
+
+    def create_time_accounting(
+        self,
+        ticket_id: int,
+        time_unit: float,
+        type_id: int | None = None,
+        ticket_article_id: int | None = None,
+    ) -> TimeAccounting:
+        """Book time on a ticket. The unit is whatever Zammad is configured to use."""
+        data: dict[str, Any] = {"time_unit": str(time_unit)}
+        if type_id is not None:
+            data["type_id"] = type_id
+        if ticket_article_id is not None:
+            data["ticket_article_id"] = ticket_article_id
+        result = self._request("POST", f"/tickets/{ticket_id}/time_accountings", json=data)
+        if not isinstance(result, dict):
+            raise ZammadClientError("Unexpected time accounting response")
+        return TimeAccounting.model_validate(result)
+
+    def get_time_accountings(self, ticket_id: int) -> list[TimeAccounting]:
+        """List time entries booked on a ticket."""
+        result = self._request("GET", f"/tickets/{ticket_id}/time_accountings")
+        if isinstance(result, dict):
+            raw = result.get("time_accountings", [])
+        elif isinstance(result, list):
+            raw = result
+        else:
+            raise ZammadClientError("Unexpected time accounting list response")
+        return [TimeAccounting.model_validate(item) for item in raw]
 
     def get_ticket_stats(
         self,

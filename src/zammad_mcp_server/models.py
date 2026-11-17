@@ -382,6 +382,22 @@ class ArticleCreateRequest(BaseModel):
     cc: str | None = None
     content_type: ArticleContentType | None = None
     attachments: list[AttachmentUpload] | None = None
+    time_unit: float | None = Field(default=None, gt=0)
+    time_accounting_type_id: int | None = None
+
+
+class TimeAccounting(BaseModel):
+    """One booked time entry on a Zammad ticket."""
+
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
+
+    id: int | None = None
+    ticket_id: int | None = Field(alias="ticketId", default=None)
+    ticket_article_id: int | None = Field(alias="ticketArticleId", default=None)
+    time_unit: float | str | None = Field(alias="timeUnit", default=None)
+    type_id: int | None = Field(alias="typeId", default=None)
+    created_at: datetime | None = Field(alias="createdAt", default=None)
+    created_by_id: int | None = Field(alias="createdById", default=None)
 
 
 class UserCreateRequest(BaseModel):

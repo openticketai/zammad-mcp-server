@@ -26,6 +26,7 @@ from zammad_mcp_server.models import (
     TicketPriority,
     TicketState,
     TicketUpdateRequest,
+    TimeAccounting,
     UserCreateRequest,
 )
 
@@ -442,11 +443,15 @@ def create_article(
     cc: str | None = None,
     content_type: str | None = None,
     attachments: list[dict[str, str]] | None = None,
+    time_unit: float | None = None,
+    time_accounting_type_id: int | None = None,
 ) -> dict[str, Any]:
     """Add a note, email, phone, or web article.
 
     content_type is text/plain or text/html. Omit it and Zammad stores text/plain.
     Attachments: filename, data (base64), mime-type.
+    time_unit books linked time after the article is created. The unit is the one
+    configured in Zammad (often minutes).
     """
     check_access("create_article", Permission.WRITE)
     client = get_client()
@@ -473,10 +478,65 @@ def create_article(
         cc=cc,
         content_type=content_type_value,
         attachments=_parse_uploads(attachments),
+        time_unit=time_unit,
+        time_accounting_type_id=time_accounting_type_id,
     )
 
     article = client.create_article(request)
     return with_body_plain(article.model_dump())
+
+
+def _time_unit_total(entries: list[TimeAccounting]) -> float:
+    total = 0.0
+    for entry in entries:
+        try:
+            total += float(entry.time_unit)
+        except (TypeError, ValueError):
+            continue
+    return total
+
+
+@mcp.tool()
+def create_time_accounting(
+    ticket_id: int,
+    time_unit: float,
+    type_id: int | None = None,
+    article_id: int | None = None,
+) -> dict[str, Any]:
+    """Book time on a ticket. The unit is the one configured in Zammad."""
+    check_access("create_time_accounting", Permission.WRITE)
+    client = get_client()
+    try:
+        ticket = client.get_ticket(ticket_id)
+        _assert_ticket_in_scope(ticket)
+    except NotFoundError:
+        return {"error": f"Ticket {ticket_id} not found"}
+    entry = client.create_time_accounting(
+        ticket_id=ticket_id,
+        time_unit=time_unit,
+        type_id=type_id,
+        ticket_article_id=article_id,
+    )
+    return entry.model_dump()
+
+
+@mcp.tool()
+def get_time_accountings(ticket_id: int) -> dict[str, Any]:
+    """List time entries booked on a ticket, including the total."""
+    check_access("get_time_accountings", Permission.READ_ONLY)
+    client = get_client()
+    try:
+        ticket = client.get_ticket(ticket_id)
+        _assert_ticket_in_scope(ticket)
+    except NotFoundError:
+        return {"error": f"Ticket {ticket_id} not found"}
+    entries = client.get_time_accountings(ticket_id)
+    return {
+        "ticket_id": ticket_id,
+        "entries": [entry.model_dump() for entry in entries],
+        "count": len(entries),
+        "total_time_unit": _time_unit_total(entries),
+    }
 
 
 @mcp.tool()

@@ -247,7 +247,7 @@ pytest tests/test_models.py -v
 
 ## Available MCP tools
 
-The server provides 35 typed MCP tools for Zammad. Full reference: [Tools Reference](https://openticketai.com/en/docs/zammad-mcp-server/tools/)
+The server provides 37 typed MCP tools for Zammad. Full reference: [Tools Reference](https://openticketai.com/en/docs/zammad-mcp-server/tools/)
 
 ### Tickets
 
@@ -257,7 +257,9 @@ The server provides 35 typed MCP tools for Zammad. Full reference: [Tools Refere
 - `update_ticket` - Update ticket properties
 - `delete_ticket` - Delete tickets (admin)
 - `get_ticket_articles` - Get all messages
-- `create_article` - Add responses/notes
+- `create_article` - Add responses/notes (optional `time_unit` books linked time)
+- `create_time_accounting` - Book time on a ticket
+- `get_time_accountings` - List booked time and the total for a ticket
 - `get_ticket_stats` - Analytics and metrics
 - `get_ticket_states` - List available states
 - `get_priorities` - List priority levels
