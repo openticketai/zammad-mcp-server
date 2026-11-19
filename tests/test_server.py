@@ -1,9 +1,12 @@
 """Tests for Zammad MCP Server tools and server functionality."""
 
+from datetime import datetime, timedelta, timezone
 from typing import Any
 from unittest.mock import MagicMock, patch
 
 import pytest
+
+from zammad_mcp_server.models import TicketState
 
 
 class TestHealthCheckTool:
@@ -238,6 +241,60 @@ class TestTicketTools:
             result = update_ticket(ticket_id=1, title="Updated Title")
 
             assert result["title"] == "Updated Title"
+
+    def test_update_ticket_with_pending_time(self, unrestricted_controller: Any) -> None:
+        """Test that pending_time is parsed and passed on with a pending state."""
+        with (
+            patch("zammad_mcp_server.server.get_client") as mock_get_client,
+            patch("zammad_mcp_server.server.get_access_controller") as mock_get_controller,
+        ):
+            # Arrange
+            mock_client = MagicMock()
+            mock_ticket = MagicMock()
+            mock_ticket.model_dump.return_value = {"id": 1, "state": "pending reminder"}
+            mock_ticket.get_group_name.return_value = "Support"
+            mock_client.get_ticket.return_value = mock_ticket
+            mock_client.update_ticket.return_value = mock_ticket
+            mock_get_client.return_value = mock_client
+            mock_get_controller.return_value = unrestricted_controller
+
+            from zammad_mcp_server.server import update_ticket
+
+            # Act
+            result = update_ticket(
+                ticket_id=1,
+                state="pending reminder",
+                pending_time="2026-11-24T08:00:00+01:00",
+            )
+
+            # Assert
+            assert result["state"] == "pending reminder"
+            request = mock_client.update_ticket.call_args.args[1]
+            assert request.state == TicketState.PENDING_REMINDER
+            assert request.pending_time == datetime(
+                2026, 11, 24, 8, 0, tzinfo=timezone(timedelta(hours=1))
+            )
+
+    def test_update_ticket_invalid_pending_time(self, unrestricted_controller: Any) -> None:
+        """Test that an invalid pending_time returns an error without calling Zammad."""
+        with (
+            patch("zammad_mcp_server.server.get_client") as mock_get_client,
+            patch("zammad_mcp_server.server.get_access_controller") as mock_get_controller,
+        ):
+            # Arrange
+            mock_client = MagicMock()
+            mock_get_client.return_value = mock_client
+            mock_get_controller.return_value = unrestricted_controller
+
+            from zammad_mcp_server.server import update_ticket
+
+            # Act
+            result = update_ticket(ticket_id=1, state="pending close", pending_time="tomorrow")
+
+            # Assert
+            assert "pending_time" in result["error"]
+            mock_client.get_ticket.assert_not_called()
+            mock_client.update_ticket.assert_not_called()
 
     def test_delete_ticket(self, unrestricted_controller: Any) -> None:
         """Test deleting a ticket."""

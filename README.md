@@ -254,7 +254,7 @@ The server provides 37 typed MCP tools for Zammad. Full reference: [Tools Refere
 - `get_ticket` - Get ticket details
 - `search_tickets` - Search with filters
 - `create_ticket` - Create new tickets
-- `update_ticket` - Update ticket properties
+- `update_ticket` - Update ticket properties (optional `pending_time` for pending states)
 - `delete_ticket` - Delete tickets (admin)
 - `get_ticket_articles` - Get all messages
 - `create_article` - Add responses/notes (optional `time_unit` books linked time)

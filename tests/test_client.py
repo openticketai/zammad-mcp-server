@@ -1,5 +1,7 @@
 """Tests for Zammad MCP Server client."""
 
+import json
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 import httpx
@@ -17,6 +19,8 @@ from zammad_mcp_server.models import (
     ArticleCreateRequest,
     OrganizationCreateRequest,
     TicketCreateRequest,
+    TicketState,
+    TicketUpdateRequest,
     UserCreateRequest,
 )
 
@@ -175,6 +179,39 @@ class TestZammadClientRequests:
 
         ticket = client.update_ticket(1, request)
         assert ticket.title == "Updated Title"
+
+    def test_update_ticket_sends_pending_time(self, respx_mock: respx.MockRouter) -> None:
+        """Test that pending_time is sent to Zammad as an ISO 8601 string."""
+        # Arrange
+        route = respx_mock.put("http://test-zammad.local/api/v1/tickets/1").mock(
+            return_value=Response(
+                200,
+                json={
+                    "id": 1,
+                    "title": "Waiting",
+                    "group_id": 1,
+                    "state_id": 3,
+                    "priority_id": 2,
+                    "customer_id": 1,
+                    "created_by_id": 1,
+                    "updated_by_id": 1,
+                    "created_at": "2026-11-19T10:00:00Z",
+                    "updated_at": "2026-11-19T10:00:00Z",
+                },
+            )
+        )
+        client = ZammadClient()
+        request = TicketUpdateRequest(
+            state=TicketState.PENDING_CLOSE,
+            pending_time=datetime(2026, 11, 24, 8, 0, tzinfo=timezone(timedelta(hours=1))),
+        )
+
+        # Act
+        client.update_ticket(1, request)
+
+        # Assert
+        body = json.loads(route.calls.last.request.content)
+        assert body == {"state": "pending close", "pending_time": "2026-11-24T08:00:00+01:00"}
 
     def test_delete_ticket(self, respx_mock: respx.MockRouter) -> None:
         """Test deleting a ticket."""
