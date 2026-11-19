@@ -6,6 +6,7 @@ import base64
 import sys
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from datetime import datetime
 from typing import Any
 
 import structlog
@@ -126,6 +127,18 @@ def _parse_content_type(value: str | None) -> ArticleContentType | None:
         return ArticleContentType(value)
     except ValueError as exc:
         raise ValueError("content_type must be text/plain or text/html") from exc
+
+
+def _parse_pending_time(value: str | None) -> datetime | None:
+    """Parse an ISO 8601 timestamp for pending states. None means omit the field."""
+    if value is None:
+        return None
+    try:
+        return datetime.fromisoformat(value)
+    except ValueError as exc:
+        raise ValueError(
+            "pending_time must be an ISO 8601 timestamp, e.g. 2026-11-24T08:00:00+01:00"
+        ) from exc
 
 
 def _ticket_dict(ticket: Any) -> dict[str, Any]:
@@ -339,6 +352,7 @@ def update_ticket(
     owner: str | None = None,
     state: str | None = None,
     priority: str | None = None,
+    pending_time: str | None = None,
 ) -> dict[str, Any]:
     """Update an existing ticket.
 
@@ -349,11 +363,18 @@ def update_ticket(
         owner: New owner (email or login)
         state: New state (e.g., 'open', 'closed', 'pending reminder')
         priority: New priority level
+        pending_time: ISO 8601 timestamp (e.g. '2026-11-24T08:00:00+01:00').
+            Zammad requires it for 'pending reminder' and 'pending close'.
 
     Returns:
         The updated ticket details.
     """
     check_access("update_ticket", Permission.WRITE)
+    try:
+        pending_time_value = _parse_pending_time(pending_time)
+    except ValueError as exc:
+        return {"error": str(exc)}
+
     client = get_client()
     existing = client.get_ticket(ticket_id)
     _assert_ticket_in_scope(existing)
@@ -380,6 +401,7 @@ def update_ticket(
         owner=owner,
         state=state_enum,
         priority=priority_enum,
+        pending_time=pending_time_value,
     )
 
     ticket = client.update_ticket(ticket_id, request)

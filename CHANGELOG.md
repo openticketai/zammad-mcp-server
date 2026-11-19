@@ -4,6 +4,7 @@
 
 - Dev stack defaults to Zammad **7.2.2** (`7.2.2-0024`): Memcached, scheduler, websocket, PostgreSQL 17, Redis 8, and Elasticsearch 9. Zammad 7.1 stays a supported tag.
 - Time accounting from pull request #3: `create_time_accounting`, `get_time_accountings`, and optional `time_unit` on `create_article`.
+- `update_ticket` accepts an optional `pending_time` (ISO 8601) and sends it to Zammad, so tickets can move to `pending reminder` and `pending close` without HTTP 422.
 
 ## 0.2.2
 
